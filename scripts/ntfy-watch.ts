@@ -24,7 +24,13 @@ async function main() {
     if (process.env.WATCHER_TEST_FAILURE === '1') throw new Error('Simulated failure');
     const products = await fetchProducts('us');
     if (!products.length) throw new Error('Apple returned no products');
-    const matches = products.filter(p => p.specs.model === 'MacBook Pro' && /14/.test(p.specs.screenSize) && p.specs.memory === '64 GB' && p.specs.storage === '1 TB' && p.specs.color.toLowerCase() === 'space black' && p.specs.year === '2026');
+    const wanted = [
+      { model: 'MacBook Pro', screenSize: '14"', chip: 'M5 Pro', memory: '64 GB', storage: '1 TB', color: 'space black', year: '2026' },
+      { model: 'MacBook Pro', screenSize: '16"', chip: 'M5 Pro', memory: '64 GB', storage: '1 TB', color: 'space black', year: '2026' },
+      { model: 'MacBook Air', screenSize: '13"', chip: 'M5', memory: '32 GB', storage: '1 TB', color: 'midnight' },
+      { model: 'MacBook Air', screenSize: '15"', chip: 'M5', memory: '32 GB', storage: '1 TB', color: 'midnight' },
+    ];
+    const matches = products.filter(p => wanted.some(w => Object.entries(w).every(([k, v]) => String((p.specs as unknown as Record<string, string>)[k]).toLowerCase() === v.toLowerCase())));
     for (const p of matches.filter(p => !state.matches.includes(p.partNumber))) {
       notify('Apple refurbished Mac available', `${p.title} — $${p.refurbPrice}`, p.url);
     }
